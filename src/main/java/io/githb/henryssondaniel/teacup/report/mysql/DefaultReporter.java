@@ -27,23 +27,42 @@ import javax.sql.DataSource;
  * @since 1.0
  */
 public class DefaultReporter implements Reporter {
+  private static final String ACTION = "` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION)";
   private static final String CONNECTION_ERROR =
       "Could not establish a connection to the database %s";
+  private static final String CONSTRAINT = ".id` ASC) VISIBLE, CONSTRAINT `";
   private static final String EXECUTION = "execution";
+  private static final String FOREIGN_KEY = "` FOREIGN KEY (`";
   private static final String LOG = "log";
   private static final Logger LOGGER = Logger.getLogger(DefaultReporter.class.getName());
   private static final String MYSQL_PROPERTY = "reporter.mysql.";
   private static final String NODE = "node";
+  private static final Map<Level, Integer> ORDINALS = new HashMap<>(7);
   private static final Properties PROPERTIES = Factory.getProperties();
+  private static final String REFERENCES = ".id`) REFERENCES `teacup_report`.`";
   private static final String RESULT = "result";
   private static final String SCHEMA = "teacup_report";
+  private static final String CREATE = "CREATE TABLE IF NOT EXISTS `" + SCHEMA + "`.`";
+  private static final String INSERT = "INSERT INTO `" + SCHEMA + "`.`";
   private static final String SESSION_EXECUTION = "session_" + EXECUTION;
   private static final String SESSION_LOG = "session_" + LOG;
   private static final String SKIPPED = "skipped";
+  private static final String UNIQUE = "UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE, INDEX `";
+  private static final String UPDATE = "UPDATE `" + SCHEMA + "`.`";
   private static final String UPDATED_ERROR = "%s could not be updated with %s";
+
+  static {
+    ORDINALS.put(Level.CONFIG, 1);
+    ORDINALS.put(Level.FINE, 2);
+    ORDINALS.put(Level.FINER, 3);
+    ORDINALS.put(Level.FINEST, 4);
+    ORDINALS.put(Level.INFO, 5);
+    ORDINALS.put(Level.SEVERE, 6);
+    ORDINALS.put(Level.WARNING, 7);
+  }
+
   private final DataSource dataSource;
   private final Map<Node, Integer> map = new HashMap<>(0);
-
   private int sessionId;
 
   /**
@@ -140,13 +159,7 @@ public class DefaultReporter implements Reporter {
         try (var connection = dataSource.getConnection();
             var preparedStatement =
                 connection.prepareStatement(
-                    "INSERT INTO `"
-                        + SCHEMA
-                        + "`.`"
-                        + SKIPPED
-                        + "`(`"
-                        + EXECUTION
-                        + ".id`, reason) VALUES(?, ?)")) {
+                    INSERT + SKIPPED + "`(`" + EXECUTION + ".id`, reason) VALUES(?, ?)")) {
           preparedStatement.setInt(1, optionalId.get());
           preparedStatement.setString(2, reason);
 
@@ -155,12 +168,12 @@ public class DefaultReporter implements Reporter {
           LOGGER.log(Level.WARNING, String.format(UPDATED_ERROR, node.getName(), SKIPPED), e);
         }
       else
-        LOGGER.warning(
-            String.format(
-                "%s skipped but was not expected to do so. This might be because it has already "
-                    + "skipped, was never initialized or the session terminated before the node "
-                    + "skipped.",
-                node.getName()));
+        LOGGER.log(
+            Level.WARNING,
+            "{0} skipped but was not expected to do so. This might be because it has already "
+                + "skipped, was never initialized or the session terminated before the node "
+                + "skipped.",
+            node.getName());
     }
   }
 
@@ -175,7 +188,7 @@ public class DefaultReporter implements Reporter {
         try (var connection = dataSource.getConnection();
             var preparedStatement =
                 connection.prepareStatement(
-                    "UPDATE `" + SCHEMA + "`.`" + EXECUTION + "` SET started = ? WHERE ID = ?")) {
+                    UPDATE + EXECUTION + "` SET started = ? WHERE ID = ?")) {
           preparedStatement.setTimestamp(1, new Timestamp(node.getTimeStarted()));
           preparedStatement.setInt(2, optionalId.get());
 
@@ -203,11 +216,7 @@ public class DefaultReporter implements Reporter {
       try (var connection = dataSource.getConnection();
           var preparedStatement =
               connection.prepareStatement(
-                  "UPDATE `"
-                      + SCHEMA
-                      + "`.`"
-                      + SESSION_EXECUTION
-                      + "` SET terminated_time = ? WHERE ID = ?")) {
+                  UPDATE + SESSION_EXECUTION + "` SET terminated_time = ? WHERE ID = ?")) {
         preparedStatement.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
         preparedStatement.setInt(2, sessionId);
 
@@ -221,68 +230,64 @@ public class DefaultReporter implements Reporter {
   private static void createExecution(Connection connection) throws SQLException {
     try (var statement = connection.createStatement()) {
       statement.execute(
-          "CREATE TABLE IF NOT EXISTS `"
-              + SCHEMA
-              + "`.`"
+          CREATE
               + EXECUTION
               + "` ( `finished` TIMESTAMP(3) NULL, `id` INT UNSIGNED NOT NULL AUTO_INCREMENT, `"
               + NODE
               + ".id` INT UNSIGNED NOT NULL, `"
               + SESSION_EXECUTION
               + ".id` INT UNSIGNED NOT NULL, `started` TIMESTAMP(3) NULL, PRIMARY KEY (`id`), "
-              + "UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE, INDEX `"
+              + UNIQUE
               + NODE
               + ".id_idx` (`node.id` ASC) VISIBLE, INDEX `"
               + SESSION_EXECUTION
               + ".id_idx` (`"
               + SESSION_EXECUTION
-              + ".id` ASC) VISIBLE, CONSTRAINT `"
+              + CONSTRAINT
               + EXECUTION
               + '.'
               + NODE
-              + "` FOREIGN KEY (`"
+              + FOREIGN_KEY
               + NODE
-              + ".id`) REFERENCES `teacup_report`.`"
+              + REFERENCES
               + NODE
               + "` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `"
               + EXECUTION
               + '.'
               + SESSION_EXECUTION
-              + "` FOREIGN KEY (`"
+              + FOREIGN_KEY
               + SESSION_EXECUTION
-              + ".id`) REFERENCES `teacup_report`.`"
+              + REFERENCES
               + SESSION_EXECUTION
-              + "` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION)");
+              + ACTION);
     }
   }
 
   private static void createLog(Connection connection) throws SQLException {
     try (var statement = connection.createStatement()) {
       statement.execute(
-          "CREATE TABLE IF NOT EXISTS `"
-              + SCHEMA
-              + "`.`"
+          CREATE
               + LOG
               + "` (`"
               + EXECUTION
               + ".id` INT UNSIGNED NOT NULL, `id` INT UNSIGNED NOT NULL AUTO_INCREMENT, `level` "
               + "ENUM('config', 'fine', 'finer', 'finest', 'info', 'severe', 'warning') NOT NULL, "
               + "`message` TEXT NULL, `time` TIMESTAMP(3) NOT NULL, PRIMARY KEY (`id`), "
-              + "UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE, INDEX `"
+              + UNIQUE
               + LOG
               + '.'
               + EXECUTION
               + "_idx` (`"
               + EXECUTION
-              + ".id` ASC) VISIBLE, CONSTRAINT `"
+              + CONSTRAINT
               + LOG
               + '.'
               + EXECUTION
-              + "` FOREIGN KEY (`"
+              + FOREIGN_KEY
               + EXECUTION
-              + ".id`) REFERENCES `teacup_report`.`"
+              + REFERENCES
               + EXECUTION
-              + "` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION)");
+              + ACTION);
     }
   }
 
@@ -298,9 +303,7 @@ public class DefaultReporter implements Reporter {
   private static void createNode(Connection connection) throws SQLException {
     try (var statement = connection.createStatement()) {
       statement.execute(
-          "CREATE TABLE IF NOT EXISTS `"
-              + SCHEMA
-              + "`.`"
+          CREATE
               + NODE
               + "` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT, `name` VARCHAR(255) NOT NULL, "
               + "PRIMARY KEY (`id`), UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE, UNIQUE INDEX "
@@ -311,9 +314,7 @@ public class DefaultReporter implements Reporter {
   private static void createResult(Connection connection) throws SQLException {
     try (var statement = connection.createStatement()) {
       statement.execute(
-          "CREATE TABLE IF NOT EXISTS `"
-              + SCHEMA
-              + "`.`"
+          CREATE
               + RESULT
               + "` ( `error` TEXT NULL, `"
               + EXECUTION
@@ -323,15 +324,15 @@ public class DefaultReporter implements Reporter {
               + EXECUTION
               + ".id_UNIQUE` (`"
               + EXECUTION
-              + ".id` ASC) VISIBLE, CONSTRAINT `"
+              + CONSTRAINT
               + RESULT
               + '.'
               + EXECUTION
-              + "` FOREIGN KEY (`"
+              + FOREIGN_KEY
               + EXECUTION
-              + ".id`) REFERENCES `teacup_report`.`"
+              + REFERENCES
               + EXECUTION
-              + "` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION)");
+              + ACTION);
     }
   }
 
@@ -344,9 +345,7 @@ public class DefaultReporter implements Reporter {
   private static void createSessionExecution(Connection connection) throws SQLException {
     try (var statement = connection.createStatement()) {
       statement.execute(
-          "CREATE TABLE IF NOT EXISTS `"
-              + SCHEMA
-              + "`.`"
+          CREATE
               + SESSION_EXECUTION
               + "` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT, `initialized` TIMESTAMP(3) "
               + "NOT NULL DEFAULT NOW(3), `terminated_time` TIMESTAMP(3) NULL, PRIMARY KEY (`id`), "
@@ -357,39 +356,35 @@ public class DefaultReporter implements Reporter {
   private static void createSessionLog(Connection connection) throws SQLException {
     try (var statement = connection.createStatement()) {
       statement.execute(
-          "CREATE TABLE IF NOT EXISTS `"
-              + SCHEMA
-              + "`.`"
+          CREATE
               + SESSION_LOG
               + "` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT, `level` "
               + "ENUM('config', 'fine', 'finer', 'finest', 'info', 'severe', 'warning') NOT NULL, "
               + "`message` TEXT NULL, `"
               + SESSION_EXECUTION
               + ".id` INT UNSIGNED NOT NULL, `time` TIMESTAMP(3) NOT NULL, PRIMARY KEY (`id`), "
-              + "UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE, INDEX `"
+              + UNIQUE
               + SESSION_LOG
               + '.'
               + SESSION_EXECUTION
               + "_idx` (`"
               + SESSION_EXECUTION
-              + ".id` ASC) VISIBLE, CONSTRAINT `"
+              + CONSTRAINT
               + SESSION_LOG
               + '.'
               + SESSION_EXECUTION
-              + "` FOREIGN KEY (`"
+              + FOREIGN_KEY
               + SESSION_EXECUTION
-              + ".id`) REFERENCES `teacup_report`.`"
+              + REFERENCES
               + SESSION_EXECUTION
-              + "` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION)");
+              + ACTION);
     }
   }
 
   private static void createSkipped(Connection connection) throws SQLException {
     try (var statement = connection.createStatement()) {
       statement.execute(
-          "CREATE TABLE IF NOT EXISTS `"
-              + SCHEMA
-              + "`.`"
+          CREATE
               + SKIPPED
               + "` ( `"
               + EXECUTION
@@ -401,17 +396,17 @@ public class DefaultReporter implements Reporter {
               + EXECUTION
               + ".id` ASC) VISIBLE, CONSTRAINT `skipped."
               + EXECUTION
-              + "` FOREIGN KEY (`"
+              + FOREIGN_KEY
               + EXECUTION
-              + ".id`) REFERENCES `teacup_report`.`"
+              + REFERENCES
               + EXECUTION
-              + "` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION)");
+              + ACTION);
     }
   }
 
   private static void executeLogStatement(
       int id, LogRecord logRecord, PreparedStatement preparedStatement) throws SQLException {
-    preparedStatement.setInt(1, getOrdinal(logRecord));
+    preparedStatement.setInt(1, ORDINALS.get(logRecord.getLevel()));
     preparedStatement.setString(2, new SimpleFormatter().formatMessage(logRecord));
     preparedStatement.setInt(3, id);
     preparedStatement.setTimestamp(4, new Timestamp(logRecord.getMillis()));
@@ -430,34 +425,6 @@ public class DefaultReporter implements Reporter {
     return id;
   }
 
-  private static int getOrdinal(LogRecord logRecord) {
-    int ordinal;
-    switch (logRecord.getLevel().getName()) {
-      case "CONFIG":
-        ordinal = 1;
-        break;
-      case "FINE":
-        ordinal = 2;
-        break;
-      case "FINER":
-        ordinal = 3;
-        break;
-      case "FINEST":
-        ordinal = 4;
-        break;
-      case "INFO":
-        ordinal = 5;
-        break;
-      case "SEVERE":
-        ordinal = 6;
-        break;
-      default:
-        ordinal = 7;
-        break;
-    }
-    return ordinal;
-  }
-
   private void insertExecution(
       Connection connection, Node node, PreparedStatement preparedStatement) throws SQLException {
     try (var resultSet = preparedStatement.executeQuery()) {
@@ -471,9 +438,7 @@ public class DefaultReporter implements Reporter {
   private void insertExecution(Connection connection, int id, Node node) throws SQLException {
     try (var preparedStatement =
         connection.prepareStatement(
-            "INSERT INTO `"
-                + SCHEMA
-                + "`.`"
+            INSERT
                 + EXECUTION
                 + "`(`"
                 + NODE
@@ -513,13 +478,7 @@ public class DefaultReporter implements Reporter {
       throws SQLException {
     try (var preparedStatement =
         connection.prepareStatement(
-            "INSERT INTO `"
-                + SCHEMA
-                + "`.`"
-                + LOG
-                + "`(level, message, `"
-                + EXECUTION
-                + ".id`, time) VALUES(?, ?, ?, ?)")) {
+            INSERT + LOG + "`(level, message, `" + EXECUTION + ".id`, time) VALUES(?, ?, ?, ?)")) {
       executeLogStatement(id, logRecord, preparedStatement);
     }
   }
@@ -527,8 +486,7 @@ public class DefaultReporter implements Reporter {
   private static int insertNode(Connection connection, String name) throws SQLException {
     try (var preparedStatement =
         connection.prepareStatement(
-            "INSERT INTO `" + SCHEMA + "`.`" + NODE + "` SET name = ?",
-            Statement.RETURN_GENERATED_KEYS)) {
+            INSERT + NODE + "` SET name = ?", Statement.RETURN_GENERATED_KEYS)) {
       preparedStatement.setString(1, name);
       preparedStatement.execute();
 
@@ -539,13 +497,7 @@ public class DefaultReporter implements Reporter {
   private static void insertResult(Connection connection, int id, Node node, Result result) {
     try (var preparedStatement =
         connection.prepareStatement(
-            "INSERT INTO `"
-                + SCHEMA
-                + "`.`"
-                + RESULT
-                + "`(error, `"
-                + EXECUTION
-                + ".id`, status) VALUES(?, ?, ?)")) {
+            INSERT + RESULT + "`(error, `" + EXECUTION + ".id`, status) VALUES(?, ?, ?)")) {
       preparedStatement.setString(1, result.getThrowable().map(Object::toString).orElse(null));
       preparedStatement.setInt(2, id);
       preparedStatement.setInt(3, result.getStatus().ordinal() + 1);
@@ -560,8 +512,7 @@ public class DefaultReporter implements Reporter {
   private void insertSessionExecution(Connection connection) throws SQLException {
     try (var statement = connection.createStatement()) {
       statement.executeUpdate(
-          "INSERT INTO `" + SCHEMA + "`.`" + SESSION_EXECUTION + "`() VALUES()",
-          Statement.RETURN_GENERATED_KEYS);
+          INSERT + SESSION_EXECUTION + "`() VALUES()", Statement.RETURN_GENERATED_KEYS);
 
       setSessionId(statement);
     }
@@ -570,9 +521,7 @@ public class DefaultReporter implements Reporter {
   private void insertSessionLog(Connection connection, LogRecord logRecord) throws SQLException {
     try (var preparedStatement =
         connection.prepareStatement(
-            "INSERT INTO `"
-                + SCHEMA
-                + "`.`"
+            INSERT
                 + SESSION_LOG
                 + "`(level, message, `"
                 + SESSION_EXECUTION
@@ -597,8 +546,7 @@ public class DefaultReporter implements Reporter {
 
   private static void updateFinished(Connection connection, int id, Node node) {
     try (var preparedStatement =
-        connection.prepareStatement(
-            "UPDATE `" + SCHEMA + "`.`" + EXECUTION + "` SET finished = ? WHERE ID = ?")) {
+        connection.prepareStatement(UPDATE + EXECUTION + "` SET finished = ? WHERE ID = ?")) {
       preparedStatement.setTimestamp(1, new Timestamp(node.getTimeFinished()));
       preparedStatement.setInt(2, id);
 
