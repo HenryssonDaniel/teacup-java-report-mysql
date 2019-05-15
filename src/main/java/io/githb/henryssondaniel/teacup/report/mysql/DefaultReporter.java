@@ -37,6 +37,8 @@ public class DefaultReporter implements Reporter {
       "{0} {1} but was not expected to do so. This might be because {2}";
   private static final String LEVEL_ENUM =
       "`level` ENUM('config', 'fine', 'finer', 'finest', 'info', 'severe', 'warning') NOT NULL,";
+  private static final String LOG =
+      "the session terminated before the node {1}, or the session was never initialized.";
   private static final Logger LOGGER = Logger.getLogger(DefaultReporter.class.getName());
   private static final String MESSAGE_TEXT = "`message` TEXT NOT NULL,";
   private static final String MYSQL_PROPERTY = "reporter.mysql.";
@@ -63,6 +65,7 @@ public class DefaultReporter implements Reporter {
 
   private final DataSource dataSource;
   private final Map<Node, Integer> map = new HashMap<>(0);
+
   private int sessionId;
 
   /**
@@ -101,15 +104,7 @@ public class DefaultReporter implements Reporter {
         } catch (SQLException e) {
           LOGGER.log(Level.WARNING, "Could not update the result", e);
         }
-    } else
-      LOGGER.log(
-          Level.WARNING,
-          ID_ERROR,
-          new Object[] {
-            node.getName(),
-            "finished",
-            "the session terminated before the node finished, or the session was never initialized."
-          });
+    } else LOGGER.log(Level.WARNING, ID_ERROR, new Object[] {node.getName(), "finished", LOG});
   }
 
   @Override
@@ -174,15 +169,7 @@ public class DefaultReporter implements Reporter {
               node.getName(), "skipped", "it has already skipped or was never initialized"
             });
       else insertSkipped(id, reason);
-    } else
-      LOGGER.log(
-          Level.WARNING,
-          ID_ERROR,
-          new Object[] {
-            node.getName(),
-            "skipped",
-            "the session terminated before the node skipped, or the session was never initialized."
-          });
+    } else LOGGER.log(Level.WARNING, ID_ERROR, new Object[] {node.getName(), "skipped", LOG});
   }
 
   @Override
@@ -209,15 +196,7 @@ public class DefaultReporter implements Reporter {
         } catch (SQLException e) {
           LOGGER.log(Level.WARNING, "Could not update result", e);
         }
-    } else
-      LOGGER.log(
-          Level.WARNING,
-          ID_ERROR,
-          new Object[] {
-            node.getName(),
-            "started",
-            "the session terminated before the node finished, or the session was never initialized."
-          });
+    } else LOGGER.log(Level.WARNING, ID_ERROR, new Object[] {node.getName(), "started", LOG});
   }
 
   @Override
