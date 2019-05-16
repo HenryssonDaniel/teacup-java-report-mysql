@@ -75,25 +75,6 @@ class DefaultReporterTest {
   }
 
   @Test
-  void finishedWhenGetKeyError() throws SQLException {
-    Reporter reporter = new DefaultReporter(dataSource);
-    reporter.initialize();
-    reporter.initialized(Collections.singletonList(node));
-
-    try (var generatedKeys = preparedStatement.getGeneratedKeys()) {
-      when(generatedKeys).thenThrow(new SQLException(TEST));
-    }
-
-    reporter.finished(node, result);
-
-    verify(node).getName();
-    verify(node).getNodes();
-    verify(node).getTimeFinished();
-    verify(result).getStatus();
-    verify(result).getThrowable();
-  }
-
-  @Test
   void finishedWhenInsertErrorError() throws SQLException {
     Reporter reporter = new DefaultReporter(dataSource);
     reporter.initialize();
@@ -127,23 +108,6 @@ class DefaultReporterTest {
   }
 
   @Test
-  void finishedWhenNoKey() throws SQLException {
-    Reporter reporter = new DefaultReporter(dataSource);
-    reporter.initialize();
-    reporter.initialized(Collections.singletonList(node));
-
-    when(resultSet.next()).thenReturn(false);
-
-    reporter.finished(node, result);
-
-    verify(node).getName();
-    verify(node).getNodes();
-    verify(node).getTimeFinished();
-    verify(result).getStatus();
-    verify(result).getThrowable();
-  }
-
-  @Test
   void finishedWhenNoSessionId() {
     new DefaultReporter().finished(node, result);
 
@@ -159,8 +123,7 @@ class DefaultReporterTest {
     reporter.initialize();
     reporter.initialized(Collections.singletonList(node));
 
-    try (var connectionStatement =
-        connection.prepareStatement(anyString(), same(Statement.RETURN_GENERATED_KEYS))) {
+    try (var connectionStatement = connection.prepareStatement(anyString())) {
       when(connectionStatement).thenThrow(new SQLException(TEST));
     }
 

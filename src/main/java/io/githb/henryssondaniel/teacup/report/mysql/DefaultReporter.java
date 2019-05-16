@@ -436,17 +436,16 @@ public class DefaultReporter implements Reporter {
   }
 
   private static void insertError(Connection connection, Integer id, Throwable throwable) {
-    if (id != null)
-      try (var preparedStatement =
-          connection.prepareStatement(
-              "INSERT INTO `teacup_report`.`error`(message, result) VALUES(?, ?)")) {
-        preparedStatement.setString(1, throwable.getMessage());
-        preparedStatement.setInt(2, id);
+    try (var preparedStatement =
+        connection.prepareStatement(
+            "INSERT INTO `teacup_report`.`error`(message, result) VALUES(?, ?)")) {
+      preparedStatement.setString(1, throwable.getMessage());
+      preparedStatement.setInt(2, id);
 
-        preparedStatement.execute();
-      } catch (SQLException e) {
-        LOGGER.log(Level.WARNING, "Could not insert the error", e);
-      }
+      preparedStatement.execute();
+    } catch (SQLException e) {
+      LOGGER.log(Level.WARNING, "Could not insert the error", e);
+    }
   }
 
   private void insertExecution(
@@ -573,19 +572,14 @@ public class DefaultReporter implements Reporter {
       throws SQLException {
     try (var preparedStatement =
         connection.prepareStatement(
-            "UPDATE `teacup_report`.`result` SET finished = ?, status = ? WHERE id = ?",
-            Statement.RETURN_GENERATED_KEYS)) {
+            "UPDATE `teacup_report`.`result` SET finished = ?, status = ? WHERE id = ?")) {
       preparedStatement.setTimestamp(1, new Timestamp(node.getTimeFinished()));
       preparedStatement.setInt(2, result.getStatus().ordinal() + 1);
       preparedStatement.setInt(3, id);
 
       preparedStatement.execute();
 
-      result
-          .getThrowable()
-          .ifPresent(
-              throwable ->
-                  insertError(connection, getId(preparedStatement).orElse(null), throwable));
+      result.getThrowable().ifPresent(throwable -> insertError(connection, id, throwable));
     }
   }
 }
