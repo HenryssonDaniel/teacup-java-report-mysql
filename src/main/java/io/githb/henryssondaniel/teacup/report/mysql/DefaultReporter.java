@@ -159,7 +159,7 @@ public class DefaultReporter implements Reporter {
     LOGGER.log(Level.INFO, "Skipped");
 
     if (sessionId > 0) {
-      var id = map.get(node);
+      var id = map.remove(node);
 
       if (id == null)
         LOGGER.log(
