@@ -18,9 +18,11 @@ import org.junit.jupiter.api.Test;
 
 @Disabled("Needs a SQL server")
 class DefaultReporterTest {
+  private static final String TEST = "test";
+
   private final Reporter defaultReporter = new DefaultReporter();
   private final Node node = Factory.createNode("name", Collections.emptyList());
-  private final Result result = Factory.createResult(Status.SUCCESSFUL, new SQLException("test"));
+  private final Result result = Factory.createResult(Status.SUCCESSFUL, new SQLException(TEST));
 
   @BeforeEach
   void beforeEach() {
@@ -92,20 +94,20 @@ class DefaultReporterTest {
   void log() throws IllegalAccessException, NoSuchFieldException {
     defaultReporter.initialize();
     defaultReporter.initialized(Collections.singletonList(node));
-    defaultReporter.log(new LogRecord(Level.INFO, "test"), node);
+    defaultReporter.log(new LogRecord(Level.INFO, TEST), node);
     assertThat(getMap()).containsOnlyKeys(node);
   }
 
   @Test
   void logWhenNoNode() throws IllegalAccessException, NoSuchFieldException {
     defaultReporter.initialize();
-    defaultReporter.log(new LogRecord(Level.INFO, "test"), null);
+    defaultReporter.log(new LogRecord(Level.INFO, TEST), null);
     assertThat(getMap()).isEmpty();
   }
 
   @Test
   void logWhenNoSessionId() throws IllegalAccessException, NoSuchFieldException {
-    defaultReporter.log(new LogRecord(Level.INFO, "test"), node);
+    defaultReporter.log(new LogRecord(Level.INFO, TEST), node);
     assertThat(getMap()).isEmpty();
   }
 
@@ -135,6 +137,40 @@ class DefaultReporterTest {
   @Test
   void skippedWhenNoSessionId() throws IllegalAccessException, NoSuchFieldException {
     defaultReporter.skipped(node, null);
+    assertThat(getMap()).isEmpty();
+  }
+
+  @Test
+  void started() throws IllegalAccessException, NoSuchFieldException {
+    defaultReporter.initialize();
+    defaultReporter.initialized(Collections.singletonList(node));
+    defaultReporter.started(node);
+    assertThat(getMap()).containsOnlyKeys(node);
+  }
+
+  @Test
+  void startedWhenNoId() throws IllegalAccessException, NoSuchFieldException {
+    defaultReporter.initialize();
+    defaultReporter.started(node);
+    assertThat(getMap()).isEmpty();
+  }
+
+  @Test
+  void startedWhenNoSessionId() throws IllegalAccessException, NoSuchFieldException {
+    defaultReporter.started(node);
+    assertThat(getMap()).isEmpty();
+  }
+
+  @Test
+  void terminated() throws IllegalAccessException, NoSuchFieldException {
+    defaultReporter.initialize();
+    defaultReporter.terminated();
+    assertThat(getMap()).isEmpty();
+  }
+
+  @Test
+  void terminatedWhenNoSessionId() throws IllegalAccessException, NoSuchFieldException {
+    defaultReporter.terminated();
     assertThat(getMap()).isEmpty();
   }
 
