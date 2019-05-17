@@ -12,3 +12,7 @@ Follow the steps below:
 1. Add this repository as a dependency
 1. Create a file named teacup.properties in a folder named .teacup in your home folder.
 1. Add reporter=io.githb.henryssondaniel.teacup.report.mysql.DefaultReporter to the file
+1. Also add
+   1. reporter.mysql.password=[password]
+   1. reporter.mysql.server.name=[name]
+   1. reporter.mysql.user=[user]
