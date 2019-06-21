@@ -1,4 +1,4 @@
-# teacup-java-report-mysql
+# [User Guide](https://henryssondaniel.github.io/teacup.github.io/)
 Java **Te**sting Fr**a**mework for **C**omm**u**nication **P**rotocols and Web Services with MySQL
 
 [![Build Status](https://travis-ci.com/HenryssonDaniel/teacup-java-report-mysql.svg?branch=master)](https://travis-ci.com/HenryssonDaniel/teacup-java-report-mysql)
