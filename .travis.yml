@@ -22,10 +22,8 @@ matrix:
   allow_failures:
     - jdk: openjdk-ea
   include:
-    - jdk: oraclejdk11
-      env: FULL_RUN=true
     - jdk: openjdk11
-      env: FULL_RUN=false
+      env: FULL_RUN=true
     - jdk: openjdk12
       env: FULL_RUN=false
     - jdk: openjdk-ea
