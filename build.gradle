@@ -60,7 +60,7 @@ dependencies {
     compile 'mysql:mysql-connector-java:8.0.16'
     implementation 'io.github.henryssondaniel.teacup:core:1.1.2-SNAPSHOT'
     testImplementation 'org.assertj:assertj-core:3.12.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.0'
     testImplementation 'org.mockito:mockito-core:2.28.2'
 }
 
