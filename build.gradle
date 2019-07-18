@@ -83,7 +83,7 @@ publishing {
 
             pom {
                 name = project.group + ':' + project.name
-                description = 'Java Testing Framework for Communication Protocols and Web Services with MySQL'
+                description = 'Report Teacup data to a MySQL database'
                 url = 'https://github.com/HenryssonDaniel/teacup-java-report-mysql'
 
                 licenses {
