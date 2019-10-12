@@ -20,11 +20,14 @@ install: true
 language: java
 matrix:
   allow_failures:
+    - jdk: openjdk13
     - jdk: openjdk-ea
   include:
     - jdk: openjdk11
       env: FULL_RUN=true
     - jdk: openjdk12
+      env: FULL_RUN=false
+    - jdk: openjdk13
       env: FULL_RUN=false
     - jdk: openjdk-ea
       env: FULL_RUN=false
