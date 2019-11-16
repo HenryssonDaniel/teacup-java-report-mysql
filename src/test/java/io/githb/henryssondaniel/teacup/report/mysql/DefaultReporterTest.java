@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.github.henryssondaniel.teacup.core.reporting.Reporter;
@@ -104,7 +104,7 @@ class DefaultReporterTest {
     verify(node).getName();
     verify(node, times(0)).getNodes();
     verify(node, times(0)).getTimeFinished();
-    verifyZeroInteractions(result);
+    verifyNoInteractions(result);
   }
 
   @Test
@@ -114,7 +114,7 @@ class DefaultReporterTest {
     verify(node).getName();
     verify(node, times(0)).getNodes();
     verify(node, times(0)).getTimeFinished();
-    verifyZeroInteractions(result);
+    verifyNoInteractions(result);
   }
 
   @Test
@@ -132,7 +132,7 @@ class DefaultReporterTest {
     verify(node).getName();
     verify(node).getNodes();
     verify(node, times(0)).getTimeFinished();
-    verifyZeroInteractions(result);
+    verifyNoInteractions(result);
   }
 
   @Test
@@ -220,8 +220,8 @@ class DefaultReporterTest {
     reporter.initialized(Collections.singletonList(node));
 
     verify(dataSource, times(2)).getConnection();
-    verifyZeroInteractions(node);
-    verifyZeroInteractions(preparedStatement);
+    verifyNoInteractions(node);
+    verifyNoInteractions(preparedStatement);
   }
 
   @Test
@@ -362,16 +362,16 @@ class DefaultReporterTest {
     reporter.initialized(Collections.emptyList());
 
     verify(dataSource).getConnection();
-    verifyZeroInteractions(node);
-    verifyZeroInteractions(preparedStatement);
+    verifyNoInteractions(node);
+    verifyNoInteractions(preparedStatement);
   }
 
   @Test
   void initializedWhenNoSessionId() {
     new DefaultReporter(dataSource).initialized(null);
 
-    verifyZeroInteractions(dataSource);
-    verifyZeroInteractions(preparedStatement);
+    verifyNoInteractions(dataSource);
+    verifyNoInteractions(preparedStatement);
   }
 
   @Test
@@ -401,9 +401,9 @@ class DefaultReporterTest {
     reporter.log(logRecord, node);
 
     verify(dataSource, times(2)).getConnection();
-    verifyZeroInteractions(logRecord);
-    verifyZeroInteractions(node);
-    verifyZeroInteractions(preparedStatement);
+    verifyNoInteractions(logRecord);
+    verifyNoInteractions(node);
+    verifyNoInteractions(preparedStatement);
   }
 
   @Test
@@ -477,13 +477,13 @@ class DefaultReporterTest {
     verify(dataSource, times(2)).getConnection();
     verifyLogRecord();
 
-    verifyZeroInteractions(node);
+    verifyNoInteractions(node);
   }
 
   @Test
   void logWhenNoSessionId() {
     new DefaultReporter(dataSource).log(logRecord, node);
-    verifyZeroInteractions(dataSource);
+    verifyNoInteractions(dataSource);
   }
 
   @Test
@@ -593,7 +593,7 @@ class DefaultReporterTest {
   void skippedWhenNoSessionId() {
     new DefaultReporter(dataSource).skipped(node, REASON);
 
-    verifyZeroInteractions(dataSource);
+    verifyNoInteractions(dataSource);
     verify(node).getName();
   }
 
@@ -707,7 +707,7 @@ class DefaultReporterTest {
   @Test
   void terminatedWhenNoSessionId() {
     new DefaultReporter(dataSource).terminated();
-    verifyZeroInteractions(dataSource);
+    verifyNoInteractions(dataSource);
   }
 
   private void setupConnection() throws SQLException {
