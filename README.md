@@ -1,7 +1,7 @@
 # [User Guide](https://henryssondaniel.github.io/teacup.github.io/)
 [![Build Status](https://travis-ci.com/HenryssonDaniel/teacup-java-report-mysql.svg?branch=master)](https://travis-ci.com/HenryssonDaniel/teacup-java-report-mysql)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=HenryssonDaniel_teacup-java-report-mysql&metric=coverage)](https://sonarcloud.io/dashboard?id=HenryssonDaniel_teacup-java-report-mysql)
-[![latest release](https://img.shields.io/badge/release%20notes-1.0.2-yellow.svg)](https://github.com/HenryssonDaniel/teacup-java-report-mysql/blob/master/doc/release-notes/official.md)
+[![latest release](https://img.shields.io/badge/release%20notes-1.0.4-yellow.svg)](https://github.com/HenryssonDaniel/teacup-java-report-mysql/blob/master/doc/release-notes/official.md)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.henryssondaniel.teacup.report/mysql.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22io.github.henryssondaniel.teacup.report%22%20AND%20a%3A%22mysql%22)
 [![Javadocs](https://www.javadoc.io/badge/io.github.henryssondaniel.teacup.report/mysql.svg)](https://www.javadoc.io/doc/io.github.henryssondaniel.teacup.report/mysql)
 ## What ##

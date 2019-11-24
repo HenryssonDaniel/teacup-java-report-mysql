@@ -33,4 +33,4 @@ matrix:
 script:
   - 'if [ "$FULL_RUN" = "false" ]; then ./gradlew clean build; fi'
   - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ "$FULL_RUN" != "false" ]; then ./gradlew clean build javadoc sonarqube; fi'
-  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$FULL_RUN" != "false" ]; then ./gradlew clean build sonarqube publish -Psigning.keyId=$keyId -Psigning.password=$password -Psigning.secretKeyRingFile=$secretKeyRingFile -PossrhUsername=$ossrhUsername -PossrhPassword=$ossrhPassword; fi'
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$FULL_RUN" != "false" ]; then ./gradlew clean build sonarqube publish -Psigning.keyId=$keyId -Psigning.password=$password -Psigning.secretKeyRingFile=$secretKeyRingFile -PossrhUsername=$ossrhUsername -PossrhPassword=$ossrhPassword -Dorg.gradle.internal.publish.checksums.insecure=true; fi'
